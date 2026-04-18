@@ -525,6 +525,55 @@ ul, ol { list-style: none; }
 .fade-in { animation: fadeIn .3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+/* ── Workout Complete Screen ── */
+.complete-page {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    padding: 40px 16px 24px;
+}
+.complete-icon {
+    font-size: 5rem;
+    margin-bottom: 16px;
+    animation: celebrateBounce 1s ease;
+}
+@keyframes celebrateBounce {
+    0%   { transform: scale(0); opacity: 0; }
+    50%  { transform: scale(1.3); }
+    70%  { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.complete-title {
+    font-size: 1.6rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+}
+.complete-subtitle {
+    font-size: .9rem; color: var(--text-dim);
+    margin-bottom: 28px;
+}
+.complete-stats {
+    display: flex; gap: 16px;
+    margin-bottom: 32px;
+}
+.complete-stat {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    text-align: center;
+    flex: 1;
+}
+.complete-stat-value {
+    font-size: 1.8rem; font-weight: 800; line-height: 1;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+.complete-stat-label {
+    font-size: .65rem; color: var(--text-dim);
+    font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+}
+
 .empty-state {
     text-align: center; padding: 40px 20px; color: var(--text-dim);
 }

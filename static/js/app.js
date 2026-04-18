@@ -7,6 +7,7 @@
     const $app = document.getElementById('app');
     const $navItems = document.querySelectorAll('.nav-item');
     let exercisesCache = null;
+    let autoStartNext = false;
 
     // ── Helpers ──────────────────────────────────
     function formatTime(s) {
@@ -55,8 +56,9 @@
             const next = all[idx + 1];
             location.hash = `#player/${next.category}/${next.slug}`;
         } else {
-            // No more exercises — go back to list
-            location.hash = '#exercises';
+            // All exercises done — show completion screen
+            autoStartNext = false;
+            location.hash = '#complete';
         }
     }
 
@@ -270,6 +272,7 @@
 
             // Auto-advance to next exercise when fully done
             if (phase === 'DONE') {
+                autoStartNext = true;
                 setTimeout(() => advanceToNext(ex), 2000);
             }
         }
@@ -290,8 +293,18 @@
 
         $back.addEventListener('click', () => {
             FlowPlayer.stop();
+            autoStartNext = false;
             history.back();
         });
+
+        // Auto-start if coming from a previous exercise
+        if (autoStartNext) {
+            autoStartNext = false;
+            started = true;
+            $btnPlay.innerHTML = pauseSvg;
+            $btnPlay.classList.remove('paused');
+            FlowPlayer.start(ex, onUpdate);
+        }
     }
 
     // ══════════════════════════════════════════════
@@ -446,6 +459,38 @@
     }
 
     // ══════════════════════════════════════════════
+    //  PAGE: Workout Complete
+    // ══════════════════════════════════════════════
+    function renderComplete() {
+        const streaks = FlowStorage.getStreaks();
+        const todayCount = FlowStorage.getRecent(50).filter(c => c.date === new Date().toISOString().slice(0, 10)).length;
+
+        $app.innerHTML = `
+        <div class="complete-page fade-in">
+            <div class="complete-icon">🎉</div>
+            <h1 class="complete-title">Allenamento Completato!</h1>
+            <p class="complete-subtitle">Ottimo lavoro, hai completato tutti gli esercizi</p>
+
+            <div class="complete-stats">
+                <div class="complete-stat">
+                    <div class="complete-stat-value">${todayCount}</div>
+                    <div class="complete-stat-label">Esercizi oggi</div>
+                </div>
+                <div class="complete-stat">
+                    <div class="complete-stat-value streak-color">${streaks.current}</div>
+                    <div class="complete-stat-label">Giorni di streak</div>
+                </div>
+                <div class="complete-stat">
+                    <div class="complete-stat-value">${streaks.total}</div>
+                    <div class="complete-stat-label">Totale completati</div>
+                </div>
+            </div>
+
+            <button class="btn-start-sequence" onclick="location.hash='#home'">← Torna alla Home</button>
+        </div>`;
+    }
+
+    // ══════════════════════════════════════════════
     //  ROUTER
     // ══════════════════════════════════════════════
     function route() {
@@ -478,6 +523,9 @@
                 break;
             case 'dashboard':
                 renderDashboard();
+                break;
+            case 'complete':
+                renderComplete();
                 break;
             default:
                 renderHome();
