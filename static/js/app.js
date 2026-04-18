@@ -167,7 +167,7 @@
         const seqTotal = allExercises.length;
         const seqNum = seqIdx >= 0 ? seqIdx + 1 : 0;
 
-        const circumference = 2 * Math.PI * 115; // radius of progress ring
+        const circumference = 2 * Math.PI * 80; // radius of progress ring
 
         $app.innerHTML = `
         <div class="player-page fade-in">
@@ -178,8 +178,8 @@
 
             <div class="player-artwork" id="player-artwork">
                 <svg class="progress-ring" id="progress-ring">
-                    <circle class="progress-ring__bg" cx="50%" cy="50%" r="115"/>
-                    <circle class="progress-ring__fill" id="progress-fill" cx="50%" cy="50%" r="115"
+                    <circle class="progress-ring__bg" cx="50%" cy="50%" r="80"/>
+                    <circle class="progress-ring__fill" id="progress-fill" cx="50%" cy="50%" r="80"
                         stroke-dasharray="${circumference}"
                         stroke-dashoffset="0"/>
                 </svg>

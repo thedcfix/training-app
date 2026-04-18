@@ -247,24 +247,24 @@ ul, ol { list-style: none; }
    ══════════════════════════════════════════════ */
 .player-page {
     display: flex; flex-direction: column; align-items: center;
-    text-align: center; padding-top: 12px;
+    text-align: center; padding-top: 8px;
 }
 .player-back {
     align-self: flex-start;
     display: flex; align-items: center; gap: 6px;
-    font-size: .85rem; font-weight: 600; color: var(--text-dim);
-    margin-bottom: 20px;
+    font-size: .8rem; font-weight: 600; color: var(--text-dim);
+    margin-bottom: 10px;
     cursor: pointer;
 }
-.player-back svg { width: 20px; height: 20px; }
+.player-back svg { width: 18px; height: 18px; }
 
 .player-artwork {
-    width: 220px; height: 220px;
+    width: 150px; height: 150px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex; align-items: center; justify-content: center;
-    font-size: 5rem;
-    margin-bottom: 24px;
+    font-size: 3.5rem;
+    margin-bottom: 14px;
     position: relative;
     box-shadow: 0 8px 40px rgba(108,99,255,.25);
 }
@@ -298,27 +298,27 @@ ul, ol { list-style: none; }
 .progress-ring__fill { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
 .recovery-phase .progress-ring__fill { stroke: var(--secondary); }
 
-.player-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
-.player-target { font-size: .85rem; color: var(--text-dim); margin-bottom: 4px; }
+.player-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 2px; }
+.player-target { font-size: .8rem; color: var(--text-dim); margin-bottom: 2px; }
 
 .player-seq-info {
-    font-size: .75rem; font-weight: 700; color: var(--primary);
-    margin-bottom: 4px;
+    font-size: .7rem; font-weight: 700; color: var(--primary);
+    margin-bottom: 2px;
     letter-spacing: .04em;
 }
 
 .player-reps {
-    font-size: .75rem; font-weight: 600; color: var(--text-muted);
-    margin-bottom: 8px;
-    min-height: 1.2em;
+    font-size: .7rem; font-weight: 600; color: var(--text-muted);
+    margin-bottom: 4px;
+    min-height: 1em;
 }
 .player-reps span { color: var(--primary); font-weight: 800; }
 
 .player-phase {
     font-size: .75rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: .1em;
-    margin-bottom: 4px;
-    min-height: 1.2em;
+    margin-bottom: 2px;
+    min-height: 1em;
 }
 .phase-announce  { color: var(--accent-yellow); }
 .phase-countdown { color: var(--accent-red); }
@@ -327,16 +327,16 @@ ul, ol { list-style: none; }
 .phase-done      { color: var(--accent-yellow); }
 
 .player-timer {
-    font-size: 3.5rem; font-weight: 800;
+    font-size: 2.5rem; font-weight: 800;
     font-variant-numeric: tabular-nums;
-    margin-bottom: 24px;
-    min-height: 1.2em;
+    margin-bottom: 14px;
+    min-height: 1em;
 }
 
 /* ── Play / Pause button ── */
-.player-controls { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
+.player-controls { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
 .btn-play {
-    width: 72px; height: 72px;
+    width: 64px; height: 64px;
     border-radius: 50%;
     background: var(--primary);
     display: flex; align-items: center; justify-content: center;
@@ -344,18 +344,18 @@ ul, ol { list-style: none; }
     transition: transform var(--transition), box-shadow var(--transition);
 }
 .btn-play:active { transform: scale(.92); }
-.btn-play svg { width: 32px; height: 32px; fill: #fff; }
-.btn-play.paused svg { margin-left: 3px; /* optical alignment for play icon */ }
+.btn-play svg { width: 28px; height: 28px; fill: #fff; }
+.btn-play.paused svg { margin-left: 3px; }
 
 .btn-stop {
-    width: 48px; height: 48px;
+    width: 42px; height: 42px;
     border-radius: 50%;
     background: var(--bg-card-alt);
     display: flex; align-items: center; justify-content: center;
     transition: transform var(--transition);
 }
 .btn-stop:active { transform: scale(.9); }
-.btn-stop svg { width: 20px; height: 20px; stroke: var(--text-dim); fill: none; stroke-width: 2; }
+.btn-stop svg { width: 18px; height: 18px; stroke: var(--text-dim); fill: none; stroke-width: 2; }
 
 /* ── Instructions toggle ── */
 .player-instructions {
@@ -534,9 +534,14 @@ ul, ol { list-style: none; }
 /* ── Responsive: Tablet+ ── */
 @media (min-width: 600px) {
     #app { padding: 24px 24px 0; }
-    .player-artwork { width: 260px; height: 260px; font-size: 6rem; }
+    .player-artwork { width: 200px; height: 200px; font-size: 4.5rem; }
+    .player-title { font-size: 1.3rem; }
+    .player-timer { font-size: 3rem; }
+    .btn-play { width: 72px; height: 72px; }
+    .btn-play svg { width: 32px; height: 32px; }
     .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (min-width: 900px) {
     #app { max-width: 720px; }
+    .player-artwork { width: 240px; height: 240px; font-size: 5rem; }
 }
