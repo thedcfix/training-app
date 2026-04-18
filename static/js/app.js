@@ -490,7 +490,8 @@
                 </div>
             </div>
 
-            <button class="btn-start-sequence" onclick="location.hash='#home'">← Torna alla Home</button>
+            <button class="btn-start-sequence" onclick="location.hash='#home'">🏠  Torna alla Home</button>
+            <button class="btn-complete-secondary" onclick="location.hash='#dashboard'">📊  Vedi Progressi</button>
         </div>`;
     }
 

@@ -155,6 +155,23 @@ ul, ol { list-style: none; }
 }
 .btn-start-sequence:active { transform: scale(.97); }
 
+.btn-complete-secondary {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0 0;
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 600;
+    border: 1.5px solid rgba(108,99,255,.3);
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-align: center;
+    transition: transform var(--transition), border-color var(--transition);
+}
+.btn-complete-secondary:active { transform: scale(.97); border-color: var(--primary); }
+
 /* ── Exercise Cards ── */
 .exercise-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
 
