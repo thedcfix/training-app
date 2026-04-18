@@ -140,7 +140,7 @@ ul, ol { list-style: none; }
     display: block;
     width: 100%;
     padding: 16px;
-    margin: 16px 0 24px;
+    margin: 20px 0 0;
     background: linear-gradient(135deg, var(--primary), #8B83FF);
     color: #fff;
     font-size: 1rem;
@@ -149,6 +149,7 @@ ul, ol { list-style: none; }
     border-radius: var(--radius);
     cursor: pointer;
     letter-spacing: .02em;
+    text-align: center;
     box-shadow: 0 4px 20px rgba(108,99,255,.35);
     transition: transform var(--transition), box-shadow var(--transition);
 }
@@ -200,11 +201,12 @@ ul, ol { list-style: none; }
 .card-body { flex: 1; position: relative; z-index: 1; }
 .card-title { font-size: .95rem; font-weight: 700; margin-bottom: 2px; }
 .card-meta {
-    font-size: .75rem; color: var(--text-dim);
-    display: flex; gap: 10px;
+    font-size: .72rem; color: var(--text-dim);
+    display: flex; flex-wrap: wrap; gap: 6px 10px;
 }
 .card-badge {
-    display: inline-flex; align-items: center; gap: 3px;
+    display: inline-flex; align-items: center; gap: 4px;
+    white-space: nowrap;
 }
 .card-check {
     width: 28px; height: 28px;

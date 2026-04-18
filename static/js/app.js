@@ -85,6 +85,8 @@
                         <div><span class="streak-detail-val">${streaks.total}</span> <span class="streak-label">completati</span></div>
                     </div>
                 </div>
+
+                <button class="btn-start-sequence" id="btn-start-seq">▶  Inizia Allenamento</button>
             </div>
 
             <div class="section-header">
@@ -95,9 +97,16 @@
             <div class="exercise-list">
                 ${allExercises.map((ex, i) => exerciseCard(ex, i + 1)).join('')}
             </div>
-
-            <button class="btn-start-sequence" id="btn-start-seq">▶  Inizia Allenamento</button>
         </div>`;
+
+        // Wire up start button
+        const $btnSeq = document.getElementById('btn-start-seq');
+        if ($btnSeq && allExercises.length > 0) {
+            $btnSeq.addEventListener('click', () => {
+                const first = allExercises[0];
+                location.hash = `#player/${first.category}/${first.slug}`;
+            });
+        }
     }
 
     function exerciseCard(ex, seqNum) {
@@ -109,9 +118,9 @@
             <div class="card-body">
                 <div class="card-title">${escapeHtml(ex.title)}</div>
                 <div class="card-meta">
-                    <span class="card-badge">⏱ ${ex.duration}s</span>
-                    <span class="card-badge">� ${ex.repetitions}x</span>
-                    <span class="card-badge">�😮‍💨 ${ex.recovery}s</span>
+                    <span class="card-badge">⏱️ ${ex.duration}s</span>
+                    <span class="card-badge">🔁 ${ex.repetitions}x</span>
+                    <span class="card-badge">💤 ${ex.recovery}s</span>
                     ${difficultyBadge(ex.difficulty)}
                 </div>
             </div>
