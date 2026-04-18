@@ -8,6 +8,7 @@
     const $navItems = document.querySelectorAll('.nav-item');
     let exercisesCache = null;
     let autoStartNext = false;
+    let sequenceMode = false; // true only when started via "Avvia Allenamento"
 
     // ── Helpers ──────────────────────────────────
     function formatTime(s) {
@@ -105,6 +106,8 @@
         const $btnSeq = document.getElementById('btn-start-seq');
         if ($btnSeq && allExercises.length > 0) {
             $btnSeq.addEventListener('click', () => {
+                sequenceMode = true;
+                autoStartNext = true;
                 const first = allExercises[0];
                 location.hash = `#player/${first.category}/${first.slug}`;
             });
@@ -270,8 +273,8 @@
                 started = false;
             }
 
-            // Auto-advance to next exercise when fully done
-            if (phase === 'DONE') {
+            // Auto-advance to next exercise when fully done (only in sequence mode)
+            if (phase === 'DONE' && sequenceMode) {
                 autoStartNext = true;
                 setTimeout(() => advanceToNext(ex), 2000);
             }
@@ -294,6 +297,7 @@
         $back.addEventListener('click', () => {
             FlowPlayer.stop();
             autoStartNext = false;
+            sequenceMode = false;
             history.back();
         });
 
@@ -504,7 +508,10 @@
         });
 
         // Stop any running player when navigating away
-        if (page !== 'player') FlowPlayer.stop();
+        if (page !== 'player' && page !== 'complete') {
+            FlowPlayer.stop();
+            sequenceMode = false;
+        }
 
         switch (page) {
             case 'home':

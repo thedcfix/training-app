@@ -71,6 +71,7 @@ const FlowPlayer = (() => {
                 _setPhase('DONE', 0, 0);
                 _stopTimer();
                 _releaseWakeLock();
+                _notify();
                 return;
             }
         }
@@ -118,6 +119,7 @@ const FlowPlayer = (() => {
                 _setPhase('DONE', 0, 0);
                 _stopTimer();
                 _releaseWakeLock();
+                _notify();
                 return;
             }
             _startAnnounceThenCountdown();
