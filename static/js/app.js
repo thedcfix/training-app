@@ -9,6 +9,7 @@
     let exercisesCache = null;
     let autoStartNext = false;
     let sequenceMode = false; // true only when started via "Avvia Allenamento"
+    let sequenceExercises = []; // exercises in current workout sequence
 
     // ── Helpers ──────────────────────────────────
     function formatTime(s) {
@@ -48,13 +49,11 @@
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
     }
 
-    /** Find the next exercise after the given one (across all categories) */
-    async function advanceToNext(currentEx) {
-        const categories = await fetchExercises();
-        const all = categories.flatMap(c => c.exercises);
-        const idx = all.findIndex(e => e.category === currentEx.category && e.slug === currentEx.slug);
-        if (idx >= 0 && idx < all.length - 1) {
-            const next = all[idx + 1];
+    /** Find the next exercise in the current workout sequence */
+    function advanceToNext(currentEx) {
+        const idx = sequenceExercises.findIndex(e => e.category === currentEx.category && e.slug === currentEx.slug);
+        if (idx >= 0 && idx < sequenceExercises.length - 1) {
+            const next = sequenceExercises[idx + 1];
             location.hash = `#player/${next.category}/${next.slug}`;
         } else {
             // All exercises done — show completion screen
@@ -63,14 +62,24 @@
         }
     }
 
+    // ── Workout fetching ──────────────────────
+    async function fetchWorkouts() {
+        const res = await fetch('/api/workouts');
+        return await res.json();
+    }
+
+    async function fetchWorkout(slug) {
+        const res = await fetch(`/api/workouts/${encodeURIComponent(slug)}`);
+        if (!res.ok) return null;
+        return await res.json();
+    }
+
     // ══════════════════════════════════════════════
     //  PAGE: Home
     // ══════════════════════════════════════════════
     async function renderHome() {
         const streaks = FlowStorage.getStreaks();
-        const categories = await fetchExercises();
-        // flatten exercises for quick-start
-        const allExercises = categories.flatMap(c => c.exercises);
+        const workouts = await fetchWorkouts();
 
         $app.innerHTML = `
         <div class="fade-in">
@@ -88,27 +97,75 @@
                         <div><span class="streak-detail-val">${streaks.total}</span> <span class="streak-label">completati</span></div>
                     </div>
                 </div>
-
-                <button class="btn-start-sequence" id="btn-start-seq">▶  Inizia Allenamento</button>
             </div>
 
             <div class="section-header">
-                <span class="section-title">La tua sequenza</span>
-                <a href="#exercises" class="section-link">Vedi tutti →</a>
+                <span class="section-title">I tuoi allenamenti</span>
+            </div>
+
+            <div class="workout-list">
+                ${workouts.map(w => `
+                    <a href="#workout/${w.slug}" class="workout-card">
+                        <div class="workout-icon">${w.icon}</div>
+                        <div class="workout-body">
+                            <div class="workout-title">${escapeHtml(w.title)}</div>
+                            <div class="workout-desc">${escapeHtml(w.description)}</div>
+                            <div class="workout-meta">${w.exercise_count} esercizi</div>
+                        </div>
+                        <div class="workout-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                        </div>
+                    </a>
+                `).join('')}
+            </div>
+        </div>`;
+    }
+
+    // ══════════════════════════════════════════════
+    //  PAGE: Workout Detail
+    // ══════════════════════════════════════════════
+    async function renderWorkout(slug) {
+        const workout = await fetchWorkout(slug);
+        if (!workout) { location.hash = '#home'; return; }
+
+        const exercises = workout.exercises || [];
+
+        $app.innerHTML = `
+        <div class="fade-in">
+            <div class="player-back" id="workout-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                Indietro
+            </div>
+
+            <div class="workout-header">
+                <div class="workout-header-icon">${workout.icon}</div>
+                <h1 class="page-title">${escapeHtml(workout.title)}</h1>
+                <p class="page-subtitle">${escapeHtml(workout.description)}</p>
+                <button class="btn-start-sequence" id="btn-start-workout">▶  Inizia Allenamento</button>
+            </div>
+
+            <div class="section-header">
+                <span class="section-title">Esercizi (${exercises.length})</span>
             </div>
 
             <div class="exercise-list">
-                ${allExercises.map((ex, i) => exerciseCard(ex, i + 1)).join('')}
+                ${exercises.map((ex, i) => exerciseCard(ex, i + 1)).join('')}
             </div>
         </div>`;
 
-        // Wire up start button
-        const $btnSeq = document.getElementById('btn-start-seq');
-        if ($btnSeq && allExercises.length > 0) {
-            $btnSeq.addEventListener('click', () => {
+        // Wire back button
+        document.getElementById('workout-back').addEventListener('click', () => {
+            history.back();
+        });
+
+        // Wire start button
+        const $btn = document.getElementById('btn-start-workout');
+        if ($btn && exercises.length > 0) {
+            $btn.addEventListener('click', () => {
                 sequenceMode = true;
                 autoStartNext = true;
-                const first = allExercises[0];
+                sequenceExercises = exercises;
+                const first = exercises[0];
                 location.hash = `#player/${first.category}/${first.slug}`;
             });
         }
@@ -165,12 +222,13 @@
         const ex = await fetchExercise(category, slug);
         if (!ex) { location.hash = '#exercises'; return; }
 
-        // Determine sequence position
-        const categories = await fetchExercises();
-        const allExercises = categories.flatMap(c => c.exercises);
-        const seqIdx = allExercises.findIndex(e => e.category === category && e.slug === slug);
-        const seqTotal = allExercises.length;
-        const seqNum = seqIdx >= 0 ? seqIdx + 1 : 0;
+        // Determine sequence position (only in sequence mode)
+        let seqNum = 0, seqTotal = 0;
+        if (sequenceMode && sequenceExercises.length > 0) {
+            const seqIdx = sequenceExercises.findIndex(e => e.category === category && e.slug === slug);
+            seqTotal = sequenceExercises.length;
+            seqNum = seqIdx >= 0 ? seqIdx + 1 : 0;
+        }
 
         const circumference = 2 * Math.PI * 80; // radius of progress ring
 
@@ -505,18 +563,33 @@
 
         // Update nav active state
         $navItems.forEach(n => {
-            n.classList.toggle('active', n.dataset.page === page || (page === 'player' && n.dataset.page === 'exercises'));
+            const isActive = n.dataset.page === page
+                || (page === 'player' && n.dataset.page === 'exercises')
+                || (page === 'workout' && n.dataset.page === 'home')
+                || (page === 'complete' && n.dataset.page === 'home');
+            n.classList.toggle('active', isActive);
         });
 
         // Stop any running player when navigating away
         if (page !== 'player' && page !== 'complete') {
             FlowPlayer.stop();
-            sequenceMode = false;
+            if (page !== 'workout') {
+                sequenceMode = false;
+                sequenceExercises = [];
+            }
         }
 
         switch (page) {
             case 'home':
                 renderHome();
+                break;
+            case 'workout':
+                // #workout/slug
+                if (parts.length >= 2) {
+                    renderWorkout(parts[1]);
+                } else {
+                    location.hash = '#home';
+                }
                 break;
             case 'exercises':
                 renderExercises();
