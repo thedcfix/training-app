@@ -269,6 +269,10 @@ ul, ol { list-style: none; }
     box-shadow: 0 8px 40px rgba(108,99,255,.25);
 }
 .player-artwork.playing { animation: pulse-glow 2s ease-in-out infinite; }
+.player-artwork.announce-phase {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+    box-shadow: 0 8px 40px rgba(255, 217, 61, .3);
+}
 .player-artwork.countdown-phase { animation: countdown-pulse 1s ease-in-out infinite; }
 .player-artwork.recovery-phase {
     background: linear-gradient(135deg, var(--secondary), var(--accent-yellow));
@@ -316,6 +320,7 @@ ul, ol { list-style: none; }
     margin-bottom: 4px;
     min-height: 1.2em;
 }
+.phase-announce  { color: var(--accent-yellow); }
 .phase-countdown { color: var(--accent-red); }
 .phase-exercise  { color: var(--primary); }
 .phase-recovery  { color: var(--secondary); }

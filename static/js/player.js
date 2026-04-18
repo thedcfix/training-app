@@ -1,14 +1,14 @@
 /* ══════════════════════════════════════════════
    FlowFit — player.js
    Spotify-style exercise player with state machine
-   Phases: IDLE → COUNTDOWN → EXERCISE → RECOVERY → DONE
+   Phases: IDLE → ANNOUNCE → COUNTDOWN → EXERCISE → RECOVERY → DONE
    ══════════════════════════════════════════════ */
 
 const FlowPlayer = (() => {
     const COUNTDOWN_SECS = 5;
 
     // State
-    let phase = 'IDLE'; // IDLE | COUNTDOWN | EXERCISE | RECOVERY | DONE
+    let phase = 'IDLE'; // IDLE | ANNOUNCE | COUNTDOWN | EXERCISE | RECOVERY | DONE
     let remaining = 0;
     let totalSecs = 0;
     let timer = null;
@@ -16,7 +16,34 @@ const FlowPlayer = (() => {
     let onUpdate = null; // callback(phase, remaining, totalSecs, currentRep)
     let currentRep = 0;
     let totalReps = 1;
+    let wakeLock = null;
 
+    // ── Wake Lock ────────────────────────────────
+    async function _acquireWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                // Re-acquire if page becomes visible again
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
+            }
+        } catch (e) { /* not supported or denied */ }
+    }
+
+    async function _releaseWakeLock() {
+        if (wakeLock) {
+            try { await wakeLock.release(); } catch (e) {}
+            wakeLock = null;
+        }
+    }
+
+    // Re-acquire on visibility change (e.g. user switches tabs and comes back)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && phase !== 'IDLE' && phase !== 'DONE') {
+            _acquireWakeLock();
+        }
+    });
+
+    // ── Timer tick ───────────────────────────────
     function _tick() {
         remaining--;
 
@@ -24,7 +51,6 @@ const FlowPlayer = (() => {
             if (remaining > 0) {
                 FlowSounds.countdownTick(remaining);
             } else {
-                // Countdown finished → start exercise
                 FlowSounds.countdownGo();
                 _startExercisePhase();
                 return;
@@ -32,25 +58,40 @@ const FlowPlayer = (() => {
         } else if (phase === 'EXERCISE') {
             if (remaining <= 0) {
                 FlowSounds.exerciseComplete();
-                // Record completion
                 FlowStorage.addCompletion(exercise.slug, exercise.category, exercise.title, exercise.icon);
                 _startRecoveryPhase();
                 return;
             }
         } else if (phase === 'RECOVERY') {
             if (remaining <= 0) {
-                // Check if more reps remain
                 if (currentRep < totalReps) {
-                    _startCountdownPhase();
+                    _startAnnounceThenCountdown();
                     return;
                 }
                 _setPhase('DONE', 0, 0);
                 _stopTimer();
+                _releaseWakeLock();
                 return;
             }
         }
 
         _notify();
+    }
+
+    // ── Phase transitions ────────────────────────
+    async function _startAnnounceThenCountdown() {
+        _stopTimer();
+        phase = 'ANNOUNCE';
+        remaining = 0;
+        totalSecs = 0;
+        _notify();
+
+        await FlowSounds.announce(exercise.title);
+
+        // Guard: user may have stopped while we were speaking
+        if (phase !== 'ANNOUNCE') return;
+
+        _startCountdownPhase();
     }
 
     function _startCountdownPhase() {
@@ -60,6 +101,7 @@ const FlowPlayer = (() => {
         totalSecs = COUNTDOWN_SECS;
         FlowSounds.countdownTick(remaining);
         _notify();
+        timer = setInterval(_tick, 1000);
     }
 
     function _startExercisePhase() {
@@ -70,16 +112,15 @@ const FlowPlayer = (() => {
     }
 
     function _startRecoveryPhase() {
-        // Skip recovery after last rep
         const isLastRep = currentRep >= totalReps;
         if (isLastRep || !exercise.recovery || exercise.recovery <= 0) {
             if (isLastRep) {
                 _setPhase('DONE', 0, 0);
                 _stopTimer();
+                _releaseWakeLock();
                 return;
             }
-            // Not last rep but no recovery — go straight to next countdown
-            _startCountdownPhase();
+            _startAnnounceThenCountdown();
             return;
         }
         totalSecs = exercise.recovery;
@@ -103,22 +144,16 @@ const FlowPlayer = (() => {
     }
 
     /** Start the player for a given exercise object */
-    function start(ex, updateCb) {
+    async function start(ex, updateCb) {
         stop();
         exercise = ex;
         onUpdate = updateCb;
         totalReps = ex.repetitions || 1;
-        currentRep = 1;
+        currentRep = 0; // will be incremented in _startCountdownPhase
         FlowSounds.unlock();
 
-        // Start countdown
-        phase = 'COUNTDOWN';
-        remaining = COUNTDOWN_SECS;
-        totalSecs = COUNTDOWN_SECS;
-        FlowSounds.countdownTick(remaining);
-        _notify();
-
-        timer = setInterval(_tick, 1000);
+        await _acquireWakeLock();
+        await _startAnnounceThenCountdown();
     }
 
     /** Stop / reset */
@@ -126,6 +161,8 @@ const FlowPlayer = (() => {
         _stopTimer();
         _setPhase('IDLE', 0, 0);
         currentRep = 0;
+        _releaseWakeLock();
+        if ('speechSynthesis' in window) speechSynthesis.cancel();
         _notify();
     }
 

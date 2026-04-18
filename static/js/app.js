@@ -226,6 +226,7 @@
             // Phase label
             const labels = {
                 IDLE:      '',
+                ANNOUNCE:  '<span class="phase-announce">🎙 Annuncio…</span>',
                 COUNTDOWN: '<span class="phase-countdown">Preparati…</span>',
                 EXERCISE:  '<span class="phase-exercise">Esercizio</span>',
                 RECOVERY:  '<span class="phase-recovery">Recupero</span>',
@@ -235,6 +236,7 @@
 
             // Timer
             if (phase === 'IDLE')      $timer.textContent = '--';
+            else if (phase === 'ANNOUNCE') $timer.textContent = '🎙';
             else if (phase === 'DONE') $timer.textContent = '🎉';
             else                       $timer.textContent = formatTime(remaining);
 
@@ -247,8 +249,9 @@
             }
 
             // Artwork classes
-            $artwork.classList.remove('playing', 'countdown-phase', 'recovery-phase');
-            if (phase === 'COUNTDOWN')    $artwork.classList.add('countdown-phase');
+            $artwork.classList.remove('playing', 'countdown-phase', 'recovery-phase', 'announce-phase');
+            if (phase === 'ANNOUNCE')     $artwork.classList.add('announce-phase');
+            else if (phase === 'COUNTDOWN')    $artwork.classList.add('countdown-phase');
             else if (phase === 'EXERCISE') $artwork.classList.add('playing');
             else if (phase === 'RECOVERY') $artwork.classList.add('recovery-phase');
 
@@ -271,12 +274,12 @@
             }
         }
 
-        $btnPlay.addEventListener('click', () => {
+        $btnPlay.addEventListener('click', async () => {
             if (!started) {
-                FlowPlayer.start(ex, onUpdate);
+                started = true;
                 $btnPlay.innerHTML = pauseSvg;
                 $btnPlay.classList.remove('paused');
-                started = true;
+                await FlowPlayer.start(ex, onUpdate);
             }
         });
 

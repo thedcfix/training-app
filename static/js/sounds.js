@@ -110,5 +110,38 @@ const FlowSounds = (() => {
         _getCtx();
     }
 
-    return { countdownTick, countdownGo, exerciseComplete, recoveryTick, recoveryComplete, unlock };
+    /**
+     * Announce exercise name via Speech Synthesis.
+     * Returns a Promise that resolves when speech ends (or after timeout).
+     */
+    function announce(text) {
+        return new Promise(resolve => {
+            if (!('speechSynthesis' in window)) { resolve(); return; }
+
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+
+            const utt = new SpeechSynthesisUtterance(text);
+            utt.lang = 'it-IT';
+            utt.rate = 1;
+            utt.pitch = 1;
+            utt.volume = 1;
+
+            // Pick an Italian voice if available
+            const voices = speechSynthesis.getVoices();
+            const itVoice = voices.find(v => v.lang.startsWith('it'));
+            if (itVoice) utt.voice = itVoice;
+
+            utt.onend = () => resolve();
+            utt.onerror = () => resolve();
+
+            // Safety timeout in case speech never fires onend
+            const timeout = setTimeout(resolve, 5000);
+            utt.onend = () => { clearTimeout(timeout); resolve(); };
+
+            speechSynthesis.speak(utt);
+        });
+    }
+
+    return { countdownTick, countdownGo, exerciseComplete, recoveryTick, recoveryComplete, unlock, announce };
 })();
